@@ -1,4 +1,4 @@
-create virtual environment
+create virtual environment and named it "env"
 
 then
 
