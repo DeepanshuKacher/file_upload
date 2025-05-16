@@ -4,67 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Upload</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-primary': '#76c7c0',
+                        'brand-background': '#f4f4f9',
+                    }
+                }
+            }
         }
-        .upload-container {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .upload-container h1 {
-            margin-bottom: 1rem;
-            color: #333;
-        }
-        .upload-container input[type="file"] {
-            margin-bottom: 1rem;
-        }
-        .progress-bar {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-        .progress-bar div {
-            height: 20px;
-            background-color: #76c7c0;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .message {
-            color: #333;
-            font-weight: bold;
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="upload-container">
-        <h1>Upload Your File</h1>
-        <input type="file" id="fileInput">
-        <div class="progress-bar">
-            <div id="progress"></div>
+<body class="bg-brand-background min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md mx-auto rounded-xl shadow-lg p-6 space-y-6 transform transition-all duration-300 hover:scale-105">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Upload Your File</h1>
+            <div class="border-2 border-dashed border-brand-primary rounded-lg p-6 text-center transition-colors duration-300 hover:border-opacity-70">
+                <input 
+                    type="file" 
+                    id="fileInput" 
+                    class="hidden" 
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                />
+                <label 
+                    for="fileInput" 
+                    class="cursor-pointer flex flex-col items-center justify-center space-y-3"
+                >
+                    <i class="fas fa-cloud-upload-alt text-5xl text-brand-primary"></i>
+                    <p class="text-gray-600">
+                        Drag and drop or <span class="text-brand-primary font-semibold">Browse</span>
+                    </p>
+                    <span id="fileName" class="text-sm text-gray-500"></span>
+                </label>
+            </div>
         </div>
-        <p class="message" id="message"></p>
+
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+                id="progress" 
+                class="bg-brand-primary h-2.5 rounded-full transition-all duration-300" 
+                style="width: 0%"
+            ></div>
+        </div>
+
+        <p 
+            id="message" 
+            class="text-center font-semibold text-sm h-6"
+        ></p>
     </div>
 
     <script>
         const fileInput = document.getElementById('fileInput');
         const progressBar = document.getElementById('progress');
         const message = document.getElementById('message');
+        const fileName = document.getElementById('fileName');
 
         fileInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
+                fileName.textContent = file.name;
                 uploadFile(file);
             }
         });
@@ -73,6 +75,9 @@
             const xhr = new XMLHttpRequest();
             const formData = new FormData();
             formData.append('file', file);
+
+            message.textContent = '';
+            progressBar.style.width = '0%';
 
             xhr.upload.addEventListener('progress', function(event) {
                 if (event.lengthComputable) {
@@ -84,15 +89,62 @@
             xhr.addEventListener('load', function() {
                 if (xhr.status === 200) {
                     message.textContent = 'File uploaded successfully!';
-                    message.style.color = 'green';
+                    message.className = 'text-center font-semibold text-sm text-green-600';
                 } else {
                     message.textContent = 'File upload failed.';
-                    message.style.color = 'red';
+                    message.className = 'text-center font-semibold text-sm text-red-600';
                 }
+            });
+
+            xhr.addEventListener('error', function() {
+                message.textContent = 'Network error. Please try again.';
+                message.className = 'text-center font-semibold text-sm text-red-600';
             });
 
             xhr.open('POST', '/upload', true);
             xhr.send(formData);
+        }
+
+        // Drag and drop functionality
+        const dropArea = document.querySelector('label[for="fileInput"]');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.parentElement.classList.add('border-brand-primary', 'bg-blue-50');
+        }
+
+        function unhighlight() {
+            dropArea.parentElement.classList.remove('border-brand-primary', 'bg-blue-50');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            
+            const file = files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                uploadFile(file);
+            }
         }
     </script>
 </body>
