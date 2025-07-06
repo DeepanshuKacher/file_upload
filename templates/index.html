@@ -29,6 +29,7 @@
                     id="fileInput" 
                     class="hidden" 
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    multiple
                 />
                 <label 
                     for="fileInput" 
@@ -64,17 +65,23 @@
         const fileName = document.getElementById('fileName');
 
         fileInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                fileName.textContent = file.name;
-                uploadFile(file);
+            if (this.files.length > 0) {
+                let names = Array.from(this.files).map(f => f.name).join(', ');
+                fileName.textContent = names;
+                uploadFiles(this.files);
             }
         });
 
         function uploadFile(file) {
+        // ...existing code...
+        }
+
+        function uploadFiles(files) {
             const xhr = new XMLHttpRequest();
             const formData = new FormData();
-            formData.append('file', file);
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
 
             message.textContent = '';
             progressBar.style.width = '0%';
@@ -88,7 +95,7 @@
 
             xhr.addEventListener('load', function() {
                 if (xhr.status === 200) {
-                    message.textContent = 'File uploaded successfully!';
+                    message.textContent = 'Files uploaded successfully!';
                     message.className = 'text-center font-semibold text-sm text-green-600';
                 } else {
                     message.textContent = 'File upload failed.';
@@ -139,11 +146,10 @@
             const dt = e.dataTransfer;
             const files = dt.files;
             fileInput.files = files;
-            
-            const file = files[0];
-            if (file) {
-                fileName.textContent = file.name;
-                uploadFile(file);
+            if (files.length > 0) {
+                let names = Array.from(files).map(f => f.name).join(', ');
+                fileName.textContent = names;
+                uploadFiles(files);
             }
         }
     </script>
