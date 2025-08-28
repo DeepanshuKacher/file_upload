@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,22 +20,16 @@
         }
     </script>
 </head>
+
 <body class="bg-brand-background min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md mx-auto rounded-xl shadow-lg p-6 space-y-6 transform transition-all duration-300 hover:scale-105">
+    <div
+        class="bg-white w-full max-w-md mx-auto rounded-xl shadow-lg p-6 space-y-6 transform transition-all duration-300 hover:scale-105">
         <div class="text-center">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">Upload Your File</h1>
-            <div class="border-2 border-dashed border-brand-primary rounded-lg p-6 text-center transition-colors duration-300 hover:border-opacity-70">
-                <input 
-                    type="file" 
-                    id="fileInput" 
-                    class="hidden" 
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    multiple
-                />
-                <label 
-                    for="fileInput" 
-                    class="cursor-pointer flex flex-col items-center justify-center space-y-3"
-                >
+            <div
+                class="border-2 border-dashed border-brand-primary rounded-lg p-6 text-center transition-colors duration-300 hover:border-opacity-70">
+                <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple />
+                <label for="fileInput" class="cursor-pointer flex flex-col items-center justify-center space-y-3">
                     <i class="fas fa-cloud-upload-alt text-5xl text-brand-primary"></i>
                     <p class="text-gray-600">
                         Drag and drop or <span class="text-brand-primary font-semibold">Browse</span>
@@ -45,26 +40,53 @@
         </div>
 
         <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-                id="progress" 
-                class="bg-brand-primary h-2.5 rounded-full transition-all duration-300" 
-                style="width: 0%"
-            ></div>
+            <div id="progress" class="bg-brand-primary h-2.5 rounded-full transition-all duration-300"
+                style="width: 0%"></div>
         </div>
 
-        <p 
-            id="message" 
-            class="text-center font-semibold text-sm h-6"
-        ></p>
+        <p id="message" class="text-center font-semibold text-sm h-6"></p>
+    </div>
+    <div class="bg-white w-full max-w-md mx-auto rounded-xl shadow-lg p-6 space-y-6 mt-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Shared Files</h2>
+        <ul id="sharedFiles" class="space-y-2 text-gray-700 text-sm"></ul>
     </div>
 
+    <script>
+        async function fetchSharedFiles() {
+            const res = await fetch('/share');
+            const data = await res.json();
+            const sharedFilesList = document.getElementById('sharedFiles');
+            sharedFilesList.innerHTML = '';
+
+            if (data.files.length === 0) {
+                sharedFilesList.innerHTML = '<li class="text-gray-500 text-center">No shared files available</li>';
+                return;
+            }
+
+            data.files.forEach(file => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition";
+
+                li.innerHTML = `
+                <span>${file}</span>
+                <a href="/download/${file}" class="text-brand-primary font-semibold hover:underline">
+                    Download
+                </a>
+            `;
+                sharedFilesList.appendChild(li);
+            });
+        }
+
+        // Load shared files on page load
+        fetchSharedFiles();
+    </script>
     <script>
         const fileInput = document.getElementById('fileInput');
         const progressBar = document.getElementById('progress');
         const message = document.getElementById('message');
         const fileName = document.getElementById('fileName');
 
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', function () {
             if (this.files.length > 0) {
                 let names = Array.from(this.files).map(f => f.name).join(', ');
                 fileName.textContent = names;
@@ -73,7 +95,7 @@
         });
 
         function uploadFile(file) {
-        // ...existing code...
+            // ...existing code...
         }
 
         function uploadFiles(files) {
@@ -86,14 +108,14 @@
             message.textContent = '';
             progressBar.style.width = '0%';
 
-            xhr.upload.addEventListener('progress', function(event) {
+            xhr.upload.addEventListener('progress', function (event) {
                 if (event.lengthComputable) {
                     const percent = (event.loaded / event.total) * 100;
                     progressBar.style.width = percent + '%';
                 }
             });
 
-            xhr.addEventListener('load', function() {
+            xhr.addEventListener('load', function () {
                 if (xhr.status === 200) {
                     message.textContent = 'Files uploaded successfully!';
                     message.className = 'text-center font-semibold text-sm text-green-600';
@@ -103,7 +125,7 @@
                 }
             });
 
-            xhr.addEventListener('error', function() {
+            xhr.addEventListener('error', function () {
                 message.textContent = 'Network error. Please try again.';
                 message.className = 'text-center font-semibold text-sm text-red-600';
             });
@@ -154,4 +176,5 @@
         }
     </script>
 </body>
+
 </html>
